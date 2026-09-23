@@ -6,6 +6,7 @@ import {
   onSnapshot,
   orderBy,
   query,
+  where,
   updateDoc,
   type Unsubscribe,
 } from 'firebase/firestore';
@@ -45,6 +46,25 @@ export type NewMessage = Omit<ChatMessage, 'id' | 'status' | 'seenBy' | 'readAt'
 
 export const conversationPath = (conversationId: string) => `conversations/${conversationId}`;
 export const messagesPath = (conversationId: string) => `${conversationPath(conversationId)}/messages`;
+
+export function subscribeToUserConversations(
+  userId: string,
+  callback: (conversations: Conversation[]) => void,
+  onError?: (error: Error) => void,
+): Unsubscribe {
+  const conversationsQuery = query(
+    collection(db, 'conversations'),
+    where('participants', 'array-contains', userId),
+    orderBy('updatedAt', 'desc'),
+  );
+
+  return onSnapshot(conversationsQuery, (snapshot) => {
+    callback(snapshot.docs.map((conversationDoc) => ({
+      id: conversationDoc.id,
+      ...conversationDoc.data(),
+    } as Conversation)));
+  }, onError);
+}
 
 export function subscribeToMessages(conversationId: string, callback: (messages: Message[]) => void, onError?: (error: Error) => void): Unsubscribe {
   const messagesQuery = query(collection(db, 'conversations', conversationId, 'messages'), orderBy('timestamp', 'asc'));
