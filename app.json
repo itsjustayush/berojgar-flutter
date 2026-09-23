@@ -19,13 +19,17 @@
       "predictiveBackGestureEnabled": false
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
     },
     "extra": {
       "eas": {
         "projectId": "1de5847d-2636-4203-afa8-4a039c86d64f"
       }
     },
-    "owner": "meteorbase"
+    "owner": "meteorbase",
+    "plugins": [
+      "expo-router"
+    ]
   }
 }

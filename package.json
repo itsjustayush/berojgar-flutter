@@ -1,13 +1,22 @@
 {
   "name": "berojgar-flutter",
   "version": "1.0.0",
-  "main": "index.ts",
+  "main": "expo-router/entry",
   "dependencies": {
+    "@expo/webpack-config": "^0.17.0",
     "@react-native-async-storage/async-storage": "2.2.0",
+    "@types/react-native": "~0.69.1",
     "expo": "~57.0.24",
+    "expo-haptics": "~57.0.3",
+    "expo-router": "~57.0.22",
     "expo-status-bar": "~57.0.1",
+    "firebase": "^12.19.0",
     "react": "19.2.3",
-    "react-native": "0.86.3"
+    "react-dom": "^19.2.3",
+    "react-native": "^0.86.3",
+    "react-native-safe-area-context": "~5.7.0",
+    "react-native-screens": "~4.26.0",
+    "react-native-web": "^0.21.2"
   },
   "devDependencies": {
     "@types/react": "~19.2.2",

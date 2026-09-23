@@ -1,4 +1,5 @@
 import { StatusBar } from 'expo-status-bar';
+import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
   Pressable,
@@ -24,9 +25,9 @@ const tabs: { id: Tab; label: string; icon: string }[] = [
 ];
 
 const conversations = [
-  { name: 'Riya Sharma', handle: '@riyash', preview: 'The chai plan is still on ☕', time: '10:42', online: true },
-  { name: 'Night Shift Tapri', handle: '12 people', preview: 'Arjun shared a photo', time: '09:18', online: false },
-  { name: 'Kunal Verma', handle: '@kunalv', preview: 'Voice note · 0:24', time: 'Yesterday', online: true },
+  { id: 'dm_ayush_riyash', name: 'Riya Sharma', handle: '@riyash', preview: 'The chai plan is still on ☕', time: '10:42', online: true },
+  { id: 'tapri_night_shift', name: 'Night Shift Tapri', handle: '12 people', preview: 'Arjun shared a photo', time: '09:18', online: false },
+  { id: 'dm_ayush_kunalv', name: 'Kunal Verma', handle: '@kunalv', preview: 'Voice note · 0:24', time: 'Yesterday', online: true },
 ];
 
 function Header({ eyebrow, title, onBack }: { eyebrow: string; title: string; onBack?: () => void }) {
@@ -51,16 +52,12 @@ function TapriScreen() {
   return <ScrollView contentContainerStyle={styles.content}><Header eyebrow="OPEN ROOMS" title="Tapri lounges" /><Text style={styles.bodyText}>Drop into a room, stay for a story. No invitation needed.</Text>{[['Night Shift Tapri', '12 people', 'late night thoughts'], ['Code & Chai', '8 people', 'building in public'], ['Delhi Diaries', '5 people', 'city stories']].map(([name, people, topic], index) => <Pressable style={styles.roomCard} key={name}><View style={styles.roomAccent}><Text style={styles.roomIcon}>{['☕', '⌘', '✦'][index]}</Text></View><View style={styles.flex}><Text style={styles.roomName}>{name}</Text><Text style={styles.mutedText}>{people} · {topic}</Text></View><Text style={styles.joinText}>Join</Text></Pressable>)}</ScrollView>;
 }
 
-function ChatsScreen({ openChat }: { openChat: () => void }) {
-  return <ScrollView contentContainerStyle={styles.content}><Header eyebrow="MESSAGES" title="Your chats" /><View style={styles.chatTabs}><Text style={styles.chatTabActive}>All chats</Text><Text style={styles.chatTab}>Pinned</Text><Text style={styles.chatTab}>Tapris</Text></View>{conversations.map((chat) => <Pressable style={styles.chatRow} key={chat.name} onPress={openChat}><View style={styles.avatar}><Text style={styles.avatarText}>{chat.name.charAt(0)}</Text>{chat.online ? <View style={styles.avatarOnline} /> : null}</View><View style={styles.flex}><View style={styles.rowBetween}><Text style={styles.personName}>{chat.name}</Text><Text style={styles.chatTime}>{chat.time}</Text></View><Text style={styles.mutedText}>{chat.handle}</Text><Text style={styles.preview} numberOfLines={1}>{chat.preview}</Text></View></Pressable>)}</ScrollView>;
+function ChatsScreen({ openChat }: { openChat: (conversationId: string) => void }) {
+  return <ScrollView contentContainerStyle={styles.content}><Header eyebrow="MESSAGES" title="Your chats" /><View style={styles.chatTabs}><Text style={styles.chatTabActive}>All chats</Text><Text style={styles.chatTab}>Pinned</Text><Text style={styles.chatTab}>Tapris</Text></View>{conversations.map((chat) => <Pressable style={styles.chatRow} key={chat.id} onPress={() => openChat(chat.id)}><View style={styles.avatar}><Text style={styles.avatarText}>{chat.name.charAt(0)}</Text>{chat.online ? <View style={styles.avatarOnline} /> : null}</View><View style={styles.flex}><View style={styles.rowBetween}><Text style={styles.personName}>{chat.name}</Text><Text style={styles.chatTime}>{chat.time}</Text></View><Text style={styles.mutedText}>{chat.handle}</Text><Text style={styles.preview} numberOfLines={1}>{chat.preview}</Text></View></Pressable>)}</ScrollView>;
 }
 
 function ProfileScreen({ onSignOut }: { onSignOut: () => void }) {
   return <ScrollView contentContainerStyle={styles.content}><Header eyebrow="YOUR PROFILE" title="Ayush" /><View style={styles.profileHero}><View style={[styles.profileAvatar, { backgroundColor: '#f2a65a' }]}><Text style={styles.profileAvatarText}>A</Text></View><Text style={styles.profileName}>Ayush</Text><Text style={styles.mutedText}>@ayush · Delhi, IN</Text><Text style={styles.profileBio}>Making room for good conversations.</Text></View><View style={styles.settingsGroup}><Text style={styles.cardKicker}>PREFERENCES</Text>{['Appearance', 'Notifications', 'Privacy & safety', 'About Berozgar'].map((item) => <Pressable style={styles.settingRow} key={item}><Text style={styles.settingText}>{item}</Text><Text style={styles.chevron}>›</Text></Pressable>)}</View><Pressable style={styles.signOutButton} onPress={onSignOut}><Text style={styles.signOutText}>Sign out</Text></Pressable></ScrollView>;
-}
-
-function ChatDetail({ onBack }: { onBack: () => void }) {
-  return <View style={styles.chatDetail}><Header eyebrow="DIRECT MESSAGE" title="Riya Sharma" onBack={onBack} /><ScrollView contentContainerStyle={styles.messages}><Text style={styles.dateDivider}>TODAY</Text><View style={styles.messageReceived}><Text style={styles.messageText}>Hey Ayush, are we still doing chai later?</Text><Text style={styles.messageTime}>10:40</Text></View><View style={styles.messageSent}><Text style={styles.messageTextLight}>Absolutely. Same place?</Text><Text style={styles.messageTimeLight}>10:41 · ✓✓</Text></View><View style={styles.messageReceived}><Text style={styles.messageText}>The corner table is ours ☕</Text><Text style={styles.messageTime}>10:42</Text></View></ScrollView><View style={styles.composer}><TextInput style={styles.composerInput} placeholder="Write a message..." placeholderTextColor={appTheme.colors.muted} /><Pressable style={styles.sendButton}><Text style={styles.sendText}>↑</Text></Pressable></View></View>;
 }
 
 function AuthScreen({ onAuthenticated }: { onAuthenticated: () => void }) {
@@ -74,10 +71,9 @@ function AuthScreen({ onAuthenticated }: { onAuthenticated: () => void }) {
 export default function App() {
   const [authenticated, setAuthenticated] = useState(false);
   const [tab, setTab] = useState<Tab>('home');
-  const [chatOpen, setChatOpen] = useState(false);
+  const router = useRouter();
   if (!authenticated) return <AuthScreen onAuthenticated={() => setAuthenticated(true)} />;
-  if (chatOpen) return <SafeAreaView style={styles.app}><ChatDetail onBack={() => setChatOpen(false)} /><StatusBar style="light" /></SafeAreaView>;
-  const screen = tab === 'home' ? <HomeScreen navigate={setTab} /> : tab === 'directory' ? <DirectoryScreen /> : tab === 'tapri' ? <TapriScreen /> : tab === 'chats' ? <ChatsScreen openChat={() => setChatOpen(true)} /> : <ProfileScreen onSignOut={() => setAuthenticated(false)} />;
+  const screen = tab === 'home' ? <HomeScreen navigate={setTab} /> : tab === 'directory' ? <DirectoryScreen /> : tab === 'tapri' ? <TapriScreen /> : tab === 'chats' ? <ChatsScreen openChat={(conversationId) => router.push({ pathname: '/chat/[id]', params: { id: conversationId } })} /> : <ProfileScreen onSignOut={() => setAuthenticated(false)} />;
   return <SafeAreaView style={styles.app}><View style={styles.screen}>{screen}</View><View style={styles.bottomNav}>{tabs.map((item) => <Pressable key={item.id} style={styles.navItem} onPress={() => setTab(item.id)}><Text style={[styles.navIcon, tab === item.id && styles.navActive]}>{item.icon}</Text><Text style={[styles.navLabel, tab === item.id && styles.navActive]}>{item.label}</Text></Pressable>)}</View><StatusBar style="light" /></SafeAreaView>;
 }
 
